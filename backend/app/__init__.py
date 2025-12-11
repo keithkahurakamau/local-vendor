@@ -1,22 +1,30 @@
 from flask import Flask
 from app.extensions import db, cors
-from config import DevelopmentConfig # Import your new config
+from config import DevelopmentConfig
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def create_app(config_class=DevelopmentConfig):
     app = Flask(__name__)
     
-    # --- Load Config from config.py ---
+    # 1. Load the Configuration
     app.config.from_object(config_class)
 
-    # --- Initialize Extensions ---
+    # 2. Safe Debug Print (Won't crash)
+    # This will print "None" if the key is missing, instead of killing the app
+    print(f"🔍 DEBUG: Database URL is -> {app.config.get('SQLALCHEMY_DATABASE_URI')}")
+
+    # 3. Initialize Extensions
     db.init_app(app)
     cors.init_app(app)
 
-    # --- Register Blueprints ---
+    # 4. Register Blueprints
     from app.routes import customer
     app.register_blueprint(customer.bp)
 
-    # --- CLI Command: Init Database ---
+    # 5. CLI Command
     @app.cli.command("init-db")
     def init_db():
         db.create_all()
